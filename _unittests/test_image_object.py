@@ -27,8 +27,6 @@ class TestImageObject:
 
         img = Image.from_file(file)
         numpy_method = img.numpy()
-        assert isinstance(img.numpy(), np.ndarray)
-
         to_numpy = np.array(img)
         assert np.all(numpy_method == to_numpy)
 
@@ -41,6 +39,17 @@ class TestImageObject:
         assert not np.allclose(to_numpy, img2)
         assert not np.allclose(to_numpy, to_numpy2)
         assert not np.allclose(img, to_numpy2)
+
+    def test_properties(self):
+        """Image h, w and shape properties should match that of .numpy()"""
+        file = str(SAMPLE_IMAGES[0])
+
+        img = Image.from_file(file)
+        array = img.numpy()
+        assert img.h == array.shape[0]
+        assert img.w == array.shape[1]
+        assert len(img.shape) == 3
+        assert img.shape == array.shape
 
     @pytest.mark.parametrize(
         "sample", [str(file) for file in INVALID_IMAGES]

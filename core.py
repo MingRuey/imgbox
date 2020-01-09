@@ -1,5 +1,6 @@
 import os
 import pathlib
+from typing import Tuple
 
 import cv2
 import numpy as np
@@ -63,3 +64,16 @@ class Image:
 
     def numpy(self) -> np.array:
         return np.copy(self._array)
+
+    @property
+    def h(self) -> int:
+        return self._array.shape[0]
+
+    @property
+    def w(self) -> int:
+        return self._array.shape[1]
+
+    @property
+    def shape(self) -> Tuple[int, int, int]:
+        """Get image tuple of (height, width, channel)"""
+        return self._array.shape
