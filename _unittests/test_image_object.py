@@ -41,10 +41,11 @@ class TestImageObject:
         assert not np.allclose(img, to_numpy2)
 
     def test_properties(self):
-        """Image h, w and shape properties should match that of .numpy()"""
-        file = str(SAMPLE_IMAGES[0])
+        """Image name, h, w and shape properties should match that of .numpy()"""
+        file = SAMPLE_IMAGES[0]
+        img = Image.from_file(str(file))
+        assert img.name == file.stem
 
-        img = Image.from_file(file)
         array = img.numpy()
         assert img.h == array.shape[0]
         assert img.w == array.shape[1]
@@ -88,6 +89,45 @@ class TestImageObject:
         """There images are broken, but Image object won't detect"""
         with pytest.raises(ValueError):
             img = Image.from_file(sample)
+
+    def test_resize(self):
+        """Test image resize to target shape"""
+        file = str(SAMPLE_IMAGES[0])
+        img = Image.from_file(file)
+
+        img.resize((224, 224))
+        assert img.shape == img.numpy().shape == (224, 224, 3)
+
+        img.resize((448, 448), interpolation="INTER_LINEAR")
+        assert img.shape == img.numpy().shape == (448, 448, 3)
+
+        img.resize((224, 224), interpolation="INTER_CUBIC")
+        assert img.shape == img.numpy().shape == (224, 224, 3)
+
+        img.resize((448, 448), interpolation="INTER_LANCZOS4")
+        assert img.shape == img.numpy().shape == (448, 448, 3)
+
+    def test_resize_invalid_shape(self):
+        """.resize() should raise ValueError when shape is invalid"""
+        file = str(SAMPLE_IMAGES[0])
+        img = Image.from_file(file)
+
+        with pytest.raises(ValueError):
+            img.resize((224, ))
+
+        with pytest.raises(ValueError):
+            img.resize((224, -1))
+
+        with pytest.raises(ValueError):
+            img.resize((113.6, 3.1415))
+
+    def test_resize_invalid_interpolation(self):
+        """.resize() should raise ValueError when interpolation is invalid"""
+        file = str(SAMPLE_IMAGES[0])
+        img = Image.from_file(file)
+
+        with pytest.raises(ValueError):
+            img.resize((224, 224), interpolation="NOT_EXIST")
 
 
 if __name__ == "__main__":

@@ -43,7 +43,12 @@ class Image:
         #     msg = "Unable to load image file: {}"
         array = _safe_imread(file)
         instance._array = array
+        instance._name = pathlib.Path(file).stem
         return instance
+
+    @property
+    def name(self):
+        return self._name
 
     def save(self, out_file: str, overwrite: bool = True):
         """Output image to file
@@ -77,3 +82,33 @@ class Image:
     def shape(self) -> Tuple[int, int, int]:
         """Get image tuple of (height, width, channel)"""
         return self._array.shape
+
+    def resize(
+            self, shape: Tuple[int, int],
+            interpolation: str = "INTER_AREA"
+            ):
+        """Resize image into given shape
+
+        Args:
+            shape: tuple of (h, w)
+            interpolation:
+                one of - "INTER_AREA": default,
+                "INTER_LINEAR", "INTER_NEAREST", "INTER_CUBIC",
+                "INTER_LANCZOS4"
+        Return:
+            a new Image object with shape resized
+        """
+        if not hasattr(cv2, interpolation):
+            msg = "Not supported interpolation method: {}"
+            raise ValueError(msg.format(interpolation))
+
+        if len(shape) != 2 or \
+                any(not isinstance(dim, int) for dim in shape) or \
+                any(dim <= 0 for dim in shape):
+            msg = "Invalid target shape: {}"
+            raise ValueError(msg.format(shape))
+
+        self._array = cv2.resize(
+            self._array, shape,
+            interpolation=getattr(cv2, interpolation)
+        )
