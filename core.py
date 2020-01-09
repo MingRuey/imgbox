@@ -1,3 +1,6 @@
+import os
+import pathlib
+
 import cv2
 import numpy as np
 
@@ -40,6 +43,20 @@ class Image:
         array = _safe_imread(file)
         instance._array = array
         return instance
+
+    def save(self, out_file: str, overwrite: bool = True):
+        """Output image to file
+
+        Args:
+            out_file (str): the target output file
+            overwrite (bool): if out_file exists, over-write it or not.
+        """
+        if not overwrite:
+            target = pathlib.Path(out_file)
+            if pathlib.Path(out_file).exists():
+                msg = "Can not write image to {}, it alreay exists."
+                raise ValueError(msg.format(target))
+        cv2.imwrite(out_file, self._array)
 
     def __array__(self) -> np.array:
         return np.copy(self._array)

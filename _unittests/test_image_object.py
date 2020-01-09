@@ -1,5 +1,8 @@
-import numpy as np
+import pathlib
+
 import pytest
+import cv2
+import numpy as np
 
 from IMGBOX.core import Image
 from IMGBOX._unittests.configs import INVALID_IMAGES, SAMPLE_IMAGES
@@ -46,6 +49,27 @@ class TestImageObject:
         """Create Image object from invalid files should raise ValueError"""
         with pytest.raises(ValueError):
             img = Image.from_file(sample)
+
+    def test_save_to_file(self, tmp_path: pathlib.Path):
+        file = str(SAMPLE_IMAGES[0])
+        img = Image.from_file(file)
+        ori_arr = img.numpy()
+
+        file_name = "test_save_file.png"
+        file = tmp_path.joinpath(file_name)
+        img.save(str(file))
+
+        assert file.is_file()
+        assert np.allclose(cv2.imread(str(file)), ori_arr)
+
+        # save to same file should return error
+        file2 = str(SAMPLE_IMAGES[1])
+        img = Image.from_file(file2)
+
+        with pytest.raises(ValueError):
+            img.save(str(file), overwrite=False)
+
+        img.save(str(file), overwrite=True)
 
     @pytest.mark.xfail(reason="Image object can not detect these image defects")
     @pytest.mark.parametrize(
