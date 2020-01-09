@@ -41,5 +41,8 @@ class Image:
         instance._array = array
         return instance
 
+    def __array__(self) -> np.array:
+        return np.copy(self._array)
+
     def numpy(self) -> np.array:
-        return self._array
+        return np.copy(self._array)
