@@ -38,12 +38,35 @@ class Image:
             file (str): the target image file
         """
         instance = cls.__new__(cls)
-        # img = cv2.imread(file)
-        # if img is None:
-        #     msg = "Unable to load image file: {}"
         array = _safe_imread(file)
+        array = array.astype(np.float32, copy=False)
         instance._array = array
         instance._name = pathlib.Path(file).stem
+        return instance
+
+    @classmethod
+    def from_array(cls, array: np.array, name=""):
+        """Construct an Image from numpy array
+
+        Args:
+            array:
+                the target numpy array, dtype must be uint8,
+                and dimension must be (h, w, 3)
+            name: the image name, default using array id.
+        """
+        input_array_info = "array of shape {} and dtype {}"
+        input_array_info = input_array_info.format(array.shape, array.dtype)
+        if array.dtype != np.uint8:
+            msg = "dtype of array must be uint8, get {}"
+            raise ValueError(msg.format(input_array_info))
+
+        if array.ndim != 3 or array.shape[-1] != 3:
+            msg = "shape of array must be (h, w, 3), get {}"
+            raise ValueError(msg.format(input_array_info))
+
+        instance = cls.__new__(cls)
+        instance._array = array.astype(np.float32)
+        instance._name = name if name else "array_" + str(id(array))
         return instance
 
     @property
@@ -65,10 +88,10 @@ class Image:
         cv2.imwrite(out_file, self._array)
 
     def __array__(self) -> np.array:
-        return np.copy(self._array)
+        return self._array
 
-    def numpy(self) -> np.array:
-        return np.copy(self._array)
+    def numpy(self, dtype=np.uint8) -> np.array:
+        return self._array.astype(dtype)
 
     @property
     def h(self) -> int:

@@ -21,13 +21,36 @@ class TestImageObject:
         for file in SAMPLE_IMAGES:
             img = Image.from_file(str(file))
 
-    def test_numpy_array(self):
-        """.numpy() should give np.ndarray and to np.ndarray give the same"""
+    def test_from_array(self):
+        """Image object can created from uint8 numpy array"""
+        array = np.random.randint(0, 255, size=(100, 500, 3), dtype=np.uint8)
+        img = Image.from_array(array)
+
+        assert np.all(img.numpy() == array)
+
+    def test_from_invalid_array(self):
+        """Image object should refuse invalid array"""
+        wrong_dimension = np.random.randint(
+            0, 255, size=(100, 500), dtype=np.uint8
+        )
+        with pytest.raises(ValueError):
+            img = Image.from_array(wrong_dimension)
+
+        wrong_dtype = np.random.randint(0, 255, size=(100, 500, 3))
+        wrong_dtype = wrong_dtype.astype(np.float32, copy=False)
+        with pytest.raises(ValueError):
+            img = Image.from_array(wrong_dtype)
+
+    def test_numpy_array_from_file(self):
+        """.numpy() should give np.ndarray in uint8(default)
+           and to np.ndarray give the same values but in float32"""
         file = str(SAMPLE_IMAGES[0])
 
         img = Image.from_file(file)
         numpy_method = img.numpy()
         to_numpy = np.array(img)
+        assert to_numpy.dtype == np.float32
+        assert numpy_method.dtype == np.uint8
         assert np.all(numpy_method == to_numpy)
 
         # check the reference of the numpy
@@ -35,6 +58,28 @@ class TestImageObject:
         img2[0, ...] = 10
         to_numpy2 = np.array(img)
         to_numpy2[0, ...] = 100
+        assert not np.allclose(img, img2)
+        assert not np.allclose(to_numpy, img2)
+        assert not np.allclose(to_numpy, to_numpy2)
+        assert not np.allclose(img, to_numpy2)
+
+    def test_numpy_array_from_array(self):
+        """.numpy() should give np.ndarray and to np.ndarray give the same"""
+        array = np.random.randint(0, 255, size=(100, 500, 3), dtype=np.uint8)
+        img = Image.from_array(array)
+
+        numpy_method = img.numpy()
+        to_numpy = np.array(img)
+        assert np.all(numpy_method == to_numpy)
+        assert np.all(numpy_method == array)
+
+        # check the reference of the numpy
+        array[0, ...] = 1
+        img2 = img.numpy()
+        img2[0, ...] = 10
+        to_numpy2 = np.array(img)
+        to_numpy2[0, ...] = 100
+        assert not np.allclose(img, array)
         assert not np.allclose(img, img2)
         assert not np.allclose(to_numpy, img2)
         assert not np.allclose(to_numpy, to_numpy2)
