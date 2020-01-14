@@ -16,7 +16,11 @@ class SingularOperation(ABC):
     def on(self, img: Image) -> Image:
         """Operate on single image"""
         result_array = self._operate(np.array(img))
-        return Image.from_array(result_array.astype(np.uint8, copy=False))
+        name = "{} on ".format(self.__class__.__name__) + img.name
+        return Image.from_array(
+            result_array.astype(np.uint8, copy=False),
+            name=name
+        )
 
 
 class BinaryOperation(ABC):
@@ -30,4 +34,9 @@ class BinaryOperation(ABC):
     def on(self, img1: Image, img2: Image) -> Image:
         """Operate on two images"""
         result_array = self._operate(np.array(img1), np.array(img2))
-        return Image.from_array(result_array.astype(np.uint8, copy=False))
+        name = "{} on ({}, {})".format(
+            self.__class__.__name__, img1.name, img2.name
+        )
+        return Image.from_array(
+            result_array.astype(np.uint8, copy=False), name=name
+        )
