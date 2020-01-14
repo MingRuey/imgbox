@@ -69,6 +69,14 @@ class Image:
         instance._name = name if name else "array_" + str(id(array))
         return instance
 
+    @classmethod
+    def copy(cls, image):
+        """Create a copy of another image"""
+        instance = cls.__new__(cls)
+        instance._array = np.array(image)
+        instance._name = image.name
+        return instance
+
     @property
     def name(self):
         return self._name

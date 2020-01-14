@@ -85,6 +85,17 @@ class TestImageObject:
         assert not np.allclose(to_numpy, to_numpy2)
         assert not np.allclose(img, to_numpy2)
 
+    def test_copy(self):
+        """Copy(image) should return a new image"""
+        array = np.random.randint(0, 255, size=(100, 500, 3), dtype=np.uint8)
+        img = Image.from_array(array)
+
+        new_img = Image.copy(img)
+        assert hash(new_img) != hash(img)
+        assert id(new_img) != id(img)
+        assert np.all(new_img.numpy() == img.numpy())
+        assert np.all(np.array(new_img) == np.array(img.numpy()))
+
     def test_properties(self):
         """Image name, h, w and shape properties should match that of .numpy()"""
         file = SAMPLE_IMAGES[0]
