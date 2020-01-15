@@ -51,7 +51,7 @@ def _get_keep_aspect_ratio_shape(
             new_w = dst_w
         return (new_h, new_w)
     else:
-        return target_w
+        return target_h, target_w
 
 
 def display(img: Image):

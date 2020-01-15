@@ -1,15 +1,9 @@
 from typing import Tuple
-from collections import namedtuple
 
 import cv2
 
 from IMGBOX.core import Image
-
-
-Rectangle = namedtuple(
-    "Rectangle",
-    ["ymin", "xmin", "ymax", "xmax"]
-)
+from IMGBOX.shapes import Rectangle
 
 
 def draw_rectangle(

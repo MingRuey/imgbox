@@ -5,6 +5,8 @@ from typing import Tuple
 import cv2
 import numpy as np
 
+from IMGBOX.shapes import Rectangle
+
 
 def _safe_imread(file: str) -> np.array:
     """Read an image file and detect corropyt"""
