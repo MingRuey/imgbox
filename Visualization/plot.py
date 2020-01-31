@@ -54,7 +54,7 @@ def _get_keep_aspect_ratio_shape(
         return target_h, target_w
 
 
-def display(img: Image):
+def display(img: Image, title: str = None):
     """Display image content via pop-up windows"""
     dst_shape = _get_keep_aspect_ratio_shape(
         target_shape=img.shape[:2],
@@ -64,5 +64,7 @@ def display(img: Image):
     if dst_shape != img.shape:
         img.resize(dst_shape)
 
-    cv2.imshow(img.name, img.numpy())
+    if title is None:
+        title = img.name
+    cv2.imshow(title, img.numpy())
     cv2.waitKey()
