@@ -47,14 +47,17 @@ class Image:
         return instance
 
     @classmethod
-    def from_array(cls, array: np.array, name=""):
+    def from_array(
+            cls, array: np.array, name: str = "", to_color: bool = True
+            ):
         """Construct an Image from numpy array
 
         Args:
             array:
-                the target numpy array, dtype must be uint8,
-                and dimension must be (h, w, 3)
+                the target numpy array, dtype must be uint8.
+                If to_color is False, the dimension must be (h, w, 3)
             name: the image name, default using array id.
+            to_color: whether to convert image from gray to RGB
         """
         input_array_info = "array of shape {} and dtype {}"
         input_array_info = input_array_info.format(array.shape, array.dtype)
@@ -62,7 +65,10 @@ class Image:
             msg = "dtype of array must be uint8, get {}"
             raise ValueError(msg.format(input_array_info))
 
-        if array.ndim != 3 or array.shape[-1] != 3:
+        if array.ndim != 3 and to_color:
+            array = cv2.cvtColor(array, cv2.COLOR_GRAY2BGR)
+
+        elif array.ndim != 3 or array.shape[-1] != 3:
             msg = "shape of array must be (h, w, 3), get {}"
             raise ValueError(msg.format(input_array_info))
 
