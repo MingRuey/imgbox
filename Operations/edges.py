@@ -11,9 +11,9 @@ from IMGBOX.Operations.base import SingularOperation
 __all__ = ["ActiveContour", "Canny", "Laplacian"]
 
 
-class ActiveContour(SingularOperation):
+class ActiveContour:
 
-    def __init__(self, snakes: List[np.array], **kwargs):
+    def __init__(self, snakes: List[np.ndarray], **kwargs):
         """Initialize active contour (snake) by specifying initial snakes
 
         The **kwargs follows parameters of scikit-image active_contour
@@ -23,11 +23,11 @@ class ActiveContour(SingularOperation):
             snakes (List[np.array]): initial snake coordinates.
             **kwargs: checkout out scikit-image active_contour
         """
+        if isinstance(snakes, np.ndarray):
+            snakes = [snakes]
         if not snakes:
             msg = "Empty snakes."
             raise ValueError(msg)
-        if isinstance(snakes, np.ndarray):
-            snakes = [snakes]
         if len(snakes) > 1:
             msg = "Currently only support single snakes"
             raise ValueError(msg)
@@ -35,7 +35,7 @@ class ActiveContour(SingularOperation):
         self._snakes = [array.copy() for array in snakes]
         self._kwargs = kwargs
 
-    def _operate(self, img: np.array) -> np.array:
+    def on(self, img: np.ndarray) -> np.ndarray:
         return active_contour(img, self._snakes[0], **self._kwargs)
 
 
@@ -51,7 +51,7 @@ class Canny(SingularOperation):
         self._thres1 = threshold1
         self._thres2 = threshold2
 
-    def _operate(self, img: np.array) -> np.array:
+    def _operate(self, img: np.ndarray) -> np.ndarray:
         result = cv2.Canny(
             img.astype(np.uint8, copy=False),
             self._thres1, self._thres2
@@ -70,7 +70,7 @@ class Laplacian(SingularOperation):
         """
         self._kern = kernel_size
 
-    def _operate(self, img: np.array) -> np.array:
+    def _operate(self, img: np.ndarray) -> np.ndarray:
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         result = cv2.Laplacian(
             img.astype(np.uint8, copy=False),
