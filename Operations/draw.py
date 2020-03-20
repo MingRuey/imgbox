@@ -6,6 +6,8 @@ import numpy as np
 from IMGBOX.core import Image
 from IMGBOX.shapes import Rectangle, Point
 
+__all__ = ["draw_rectangle", "draw_points"]
+
 
 def draw_rectangle(
         img: Image, rectangle: Rectangle,

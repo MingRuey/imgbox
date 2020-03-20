@@ -1,11 +1,13 @@
-from IMGBOX.core import Image
-from IMGBOX.shapes import Rectangle
-from IMGBOX.Operations.edges import Canny
-from IMGBOX.Operations.crop import Crop
-from IMGBOX.Operations.correlation import CrossCorrelate2D
-from IMGBOX.Visualization.plot import display
+from IMGBOX.core import *
+from IMGBOX.shapes import *
+from IMGBOX.Operations.edges import *
+from IMGBOX.Operations.crop import *
+from IMGBOX.Operations.draw import *
+from IMGBOX.Operations.difference import *
+from IMGBOX.Operations.correlation import *
+from IMGBOX.Visualization.plot import *
 
 
 def list_ops():
     """Get a list of availiable operations"""
-    return [op.__name__ for op in (Canny, Crop, CrossCorrelate2D)]
+    return [op for op in globals().keys() if not op.startswith("__")]

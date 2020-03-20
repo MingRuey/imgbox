@@ -3,6 +3,8 @@ import numpy as np
 from IMGBOX.core import Image
 from IMGBOX.Operations.base import BinaryOperation
 
+__all__ = ["AbsDiff"]
+
 
 class AbsDiff(BinaryOperation):
     """Pixel wise difference on image"""

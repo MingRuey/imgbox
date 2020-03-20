@@ -6,6 +6,9 @@ import tkinter as tk
 from IMGBOX.core import Image
 
 
+__all__ = ["display"]
+
+
 def _get_curr_montior_geometry():
     """Get current monitor resolution, even in multiple monitors setup
 

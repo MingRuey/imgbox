@@ -4,6 +4,8 @@ from IMGBOX.core import Image
 from IMGBOX.shapes import Rectangle
 from IMGBOX.Operations.base import SingularOperation
 
+__all__ = ["Crop"]
+
 
 class Crop(SingularOperation):
     """Simple Canny operation"""

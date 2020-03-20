@@ -5,6 +5,9 @@ from IMGBOX.core import Image
 from IMGBOX.Operations.base import BinaryOperation
 
 
+__all__ = ["CrossCorrelate2D"]
+
+
 class CrossCorrelate2D(BinaryOperation):
     """Calculate cross correlation between two images
 

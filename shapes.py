@@ -1,6 +1,8 @@
 from numbers import Number
 from collections import namedtuple
 
+__all__ = ["Rectangle", "Point"]
+
 
 def _cvt2float(number) -> float:
     if not isinstance(number, Number):

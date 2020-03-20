@@ -7,6 +7,8 @@ import numpy as np
 
 from IMGBOX.shapes import Rectangle
 
+__all__ = ["Image"]
+
 
 def _safe_imread(file: str) -> np.array:
     """Read an image file and detect corropyt"""

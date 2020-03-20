@@ -1,8 +1,42 @@
-import numpy as np
+from typing import List
+
 import cv2
+import numpy as np
+from skimage.segmentation import active_contour
 
 from IMGBOX.core import Image
 from IMGBOX.Operations.base import SingularOperation
+
+
+__all__ = ["ActiveContour", "Canny", "Laplacian"]
+
+
+class ActiveContour(SingularOperation):
+
+    def __init__(self, snakes: List[np.array], **kwargs):
+        """Initialize active contour (snake) by specifying initial snakes
+
+        The **kwargs follows parameters of scikit-image active_contour
+        https://scikit-image.org/docs/dev/api/skimage.segmentation.html#skimage.segmentation.active_contour
+
+        Args:
+            snakes (List[np.array]): initial snake coordinates.
+            **kwargs: checkout out scikit-image active_contour
+        """
+        if not snakes:
+            msg = "Empty snakes."
+            raise ValueError(msg)
+        if isinstance(snakes, np.ndarray):
+            snakes = [snakes]
+        if len(snakes) > 1:
+            msg = "Currently only support single snakes"
+            raise ValueError(msg)
+
+        self._snakes = [array.copy() for array in snakes]
+        self._kwargs = kwargs
+
+    def _operate(self, img: np.array) -> np.array:
+        return active_contour(img, self._snakes[0], **self._kwargs)
 
 
 class Canny(SingularOperation):
