@@ -24,14 +24,24 @@ def draw_rectangle(
 
 def draw_points(img, points: List[Point], color: Tuple[int, int, int]):
     """Draw points onto image by given color
+
+    Args:
+        img: the Image object to draw on
+        points: points to draw on images, can be either
+            a) list of Point object
+            b) a numpy array of dim (N, 2)
+        color: the drawing color of image
     """
     if isinstance(points, np.ndarray):
-        points = [points]
+        if not (points.ndim == 2 and points.shape[-1] == 2):
+            msg = "Invalid dimension for points, must be (N, 2), got {}"
+            raise ValueError(msg.format(points.shape))
+        indices = points.astype(np.int)
+    else:
+        if any(not pt.inside(img) for pt in points):
+            msg = "Points {} not all inside image with shape {}"
+            raise ValueError(msg.format(points, img))
+        # stack points into indices
+        indices = np.array([(pt.y, pt.x) for pt in points], dtype=np.int)
 
-    if any(not pt.inside(img) for pt in points):
-        msg = "Points {} not all inside image with shape {}"
-        raise ValueError(msg.format(points, img))
-
-    # stack points into indices
-    indices = np.array([(pt.y, pt.x) for pt in points], dtype=np.int)
     img._array[indices[:, 0], indices[:, 1], ...] = color
