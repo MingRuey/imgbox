@@ -1,6 +1,65 @@
 import pytest
+import numpy as np
 
-from IMGBOX.shapes import Rectangle
+from IMGBOX.core import Image
+from IMGBOX.shapes import Rectangle, Point
+
+
+class TestPoint:
+
+    def test_construct(self):
+        """Point.x Point.y should return right value"""
+        pt = Point(x=5, y=8)
+        assert pt.y == 8
+        assert pt.x == 5
+
+        pat = Point(8, 5)
+        assert pt.y == 8
+        assert pt.x == 5
+
+    def test_inside_image(self):
+        """Point.inside should return right result"""
+        sample_img = Image.from_array(np.zeros((100, 200, 3), dtype=np.uint8))
+
+        # test 4 corners
+        top_left = Point(y=0, x=0)
+        bottom_left = Point(y=99, x=0)
+        top_right = Point(y=0, x=199)
+        bottom_right = Point(y=99, x=199)
+
+        assert top_left.inside(sample_img)
+        assert bottom_left.inside(sample_img)
+        assert top_right.inside(sample_img)
+        assert bottom_right.inside(sample_img)
+
+        # test out-side point
+        pt1 = Point(y=-1, x=50)
+        pt2 = Point(y=100, x=50)
+        pt3 = Point(y=50, x=-1)
+        pt4 = Point(y=50, x=200)
+
+        assert not pt1.inside(sample_img)
+        assert not pt2.inside(sample_img)
+        assert not pt3.inside(sample_img)
+        assert not pt4.inside(sample_img)
+
+    def test_add_substract_points(self):
+        """+ or - on two points return a point whose location are summed"""
+        pt1 = Point(x=1, y=2)
+        pt2 = Point(x=3, y=40)
+        summed = pt1 + pt2
+        substracted = pt1 - pt2
+
+        assert summed.x == 4
+        assert summed.y == 42
+        assert substracted.x == -2
+        assert substracted.y == -38
+
+    def test_unary(self):
+        pt = Point(x=-5, y=200)
+        pt = -pt
+        assert pt.x == 5
+        assert pt.y == -200
 
 
 class TestRectangle:

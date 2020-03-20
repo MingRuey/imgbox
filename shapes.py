@@ -9,6 +9,28 @@ def _cvt2float(number) -> float:
         return number
 
 
+class Point(namedtuple("Point", ["y", "x"])):
+
+    def __new__(cls, y: int, x: int):
+        yloc = int(y)
+        xloc = int(x)
+        return super().__new__(cls, y=yloc, x=xloc)
+
+    def inside(self, image) -> bool:
+        """Check Point locate inside given image or not"""
+        h, w, _ = image.shape
+        return 0 <= self.y < h and 0 <= self.x < w
+
+    def __add__(self, other):
+        return Point(y=self.y + other.y, x=self.x + other.x)
+
+    def __sub__(self, other):
+        return Point(y=self.y - other.y, x=self.x - other.x)
+
+    def __neg__(self):
+        return Point(y=-self.y, x=-self.x)
+
+
 class Rectangle(namedtuple("Rectangle", ["ymin", "xmin", "ymax", "xmax"])):
 
     def __new__(cls, ymin, xmin, ymax, xmax):
