@@ -1,6 +1,9 @@
 import os
 import pathlib
+import operator
+from functools import partial
 from typing import Tuple
+from numbers import Number
 
 import cv2
 import numpy as np
@@ -20,6 +23,36 @@ def _safe_imread(file: str) -> np.ndarray:
             msg = "Decode image {} failed"
             raise ValueError(msg.format(file))
         return array
+
+
+def _math_operator(op, order=None):
+    """make image suuport numpy(with dtype uint8) like math operations
+
+    Args:
+        other: the value for conducting math operations
+        op: function defined in standard library 'operator'
+        order:
+            be either None or "r",
+            indicating use __radd__, __rsub__, ... or not
+    Return:
+        a funcition, which return either op(self, other) or op(other, self),
+        depending on the 'order' parameter
+    """
+    def math_op(self, other):
+        if isinstance(other, Image):
+            target = other._array
+        else:
+            target = other
+
+        if order is None:
+            result = op(self._array, target)
+        elif order == "r":
+            result = op(target, self._array)
+        else:
+            raise RuntimeError("order {} not recognized".format(order))
+        return Image.from_array(result.astype(np.uint8))
+
+    return math_op
 
 
 class Image:
@@ -153,3 +186,20 @@ class Image:
             self._array, shape,
             interpolation=getattr(cv2, interpolation)
         )
+
+    __add__ = _math_operator(op=operator.add, order=None)
+    __radd__ = _math_operator(op=operator.add, order="r")
+    __sub__ = _math_operator(op=operator.sub, order=None)
+    __rsub__ = _math_operator(op=operator.sub, order="r")
+    __mul__ = _math_operator(op=operator.mul, order=None)
+    __rmul__ = _math_operator(op=operator.mul, order="r")
+    __truediv__ = _math_operator(op=operator.truediv, order=None)
+    __rtruediv__ = _math_operator(op=operator.truediv, order="r")
+    __floordiv__ = _math_operator(op=operator.floordiv, order=None)
+    __rfloordiv__ = _math_operator(op=operator.floordiv, order="r")
+
+    __iadd__ = _math_operator(op=operator.iadd, order=None)
+    __isub__ = _math_operator(op=operator.isub, order=None)
+    __imul__ = _math_operator(op=operator.imul, order=None)
+    __itruediv__ = _math_operator(op=operator.itruediv, order=None)
+    __ifloordiv__ = _math_operator(op=operator.ifloordiv, order=None)

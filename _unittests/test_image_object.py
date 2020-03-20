@@ -1,3 +1,4 @@
+import operator
 import pathlib
 
 import pytest
@@ -186,5 +187,65 @@ class TestImageObject:
             img.resize((224, 224), interpolation="NOT_EXIST")
 
 
+_Operands = {
+    "+": operator.add,
+    "-": operator.sub,
+    "*": operator.mul,
+    "/": operator.truediv,
+}
+
+
+class TestMathOperation:
+
+    @pytest.mark.parametrize(
+        "operand", [k for k in _Operands.keys()]
+    )
+    def test_math_operators_with_constant(self, operand):
+        """Test image basic math operation on constants"""
+        operator = _Operands[operand]
+        array = np.arange(1, 251).reshape(50, 5).astype(np.uint8)
+        constant = 10
+
+        image = Image.from_array(array)
+        op = operator(image, constant)
+        r_op = operator(constant, image)
+
+        # Image.numpy() is 3-channel, allow broadcasting comparison
+        result = operator(array, constant).astype(np.uint8)[..., None]
+        r_result = operator(constant, array).astype(np.uint8)[..., None]
+        assert np.all(op.numpy() == result)
+        assert np.all(r_op.numpy() == r_result)
+
+        # commutative operator
+        if operand in ["+", "*"]:
+            assert np.all(op.numpy() == r_op.numpy())
+
+    @pytest.mark.parametrize(
+        "operand", [k for k in _Operands.keys()]
+    )
+    def test_math_operators_with_images(self, operand):
+        """Test image basic math operation with another image"""
+        operator = _Operands[operand]
+
+        array1 = np.arange(1, 251).reshape(10, 25).astype(np.uint8)
+        array2 = np.arange(250, 0, -1).reshape(10, 25).astype(np.uint8)
+
+        image1 = Image.from_array(array1)
+        image2 = Image.from_array(array2)
+
+        op = operator(image1, image2)
+        r_op = operator(image2, image1)
+
+        result = operator(array1, array2).astype(np.uint8)[..., None]
+        r_result = operator(array2, array1).astype(np.uint8)[..., None]
+
+        assert np.all(op.numpy() == result)
+        assert np.all(r_op.numpy() == r_result)
+
+        # commutative operator
+        if operand in ["+", "*"]:
+            assert np.all(op.numpy() == r_op.numpy())
+
+
 if __name__ == "__main__":
-    pytest.main(["-s", "-v", __file__])
+    pytest.main(["-s", "-v", "-k TestMathOperation", __file__])
