@@ -14,7 +14,7 @@ class CrossCorrelate2D(BinaryOperation):
     It will first convert image to gray-scale, then conduct fftconvolve
     """
 
-    def _operate(self, array1: np.array, array2: np.array) -> np.array:
+    def _operate(self, array1: np.ndarray, array2: np.ndarray) -> np.ndarray:
         img1 = np.sum(array1, axis=2)
         img1 -= np.mean(img1)
 

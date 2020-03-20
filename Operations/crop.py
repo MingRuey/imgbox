@@ -25,7 +25,7 @@ class Crop(SingularOperation):
             int(cropped_region.ymin), int(cropped_region.xmin), \
             int(cropped_region.ymax), int(cropped_region.xmax)
 
-    def _operate(self, img: np.array) -> np.array:
+    def _operate(self, img: np.ndarray) -> np.ndarray:
         if self.ymax > img.shape[0] or self.xmax > img.shape[1]:
             msg = "Cropped region out of range: cropped {} from image shape {}"
             raise ValueError(msg.format(self._cropped_region, img.shape))

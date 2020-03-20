@@ -9,7 +9,7 @@ class SingularOperation(ABC):
     """Operation for single image"""
 
     @abstractmethod
-    def _operate(self, img1: np.array) -> np.array:
+    def _operate(self, img1: np.ndarray) -> np.ndarray:
         """Acutal operation on numpy array that subclass must implement"""
         pass
 
@@ -27,7 +27,7 @@ class BinaryOperation(ABC):
     """Operation for two images"""
 
     @abstractmethod
-    def _operate(self, img1: np.array, img2: np.array) -> np.array:
+    def _operate(self, img1: np.ndarray, img2: np.ndarray) -> np.ndarray:
         """Acutal operation on numpy array that subclass must implement"""
         pass
 

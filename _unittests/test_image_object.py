@@ -34,7 +34,7 @@ class TestImageObject:
             0, 255, size=(100, 500), dtype=np.uint8
         )
         with pytest.raises(ValueError):
-            img = Image.from_array(wrong_dimension)
+            img = Image.from_array(wrong_dimension, to_color=False)
 
         wrong_dtype = np.random.randint(0, 255, size=(100, 500, 3))
         wrong_dtype = wrong_dtype.astype(np.float32, copy=False)

@@ -10,7 +10,7 @@ from IMGBOX.shapes import Rectangle
 __all__ = ["Image"]
 
 
-def _safe_imread(file: str) -> np.array:
+def _safe_imread(file: str) -> np.ndarray:
     """Read an image file and detect corropyt"""
     with open(file, "rb") as f:
         content = f.read()
@@ -50,7 +50,7 @@ class Image:
 
     @classmethod
     def from_array(
-            cls, array: np.array, name: str = "", to_color: bool = True
+            cls, array: np.ndarray, name: str = "", to_color: bool = True
             ):
         """Construct an Image from numpy array
 
@@ -105,10 +105,10 @@ class Image:
                 raise ValueError(msg.format(target))
         cv2.imwrite(out_file, self._array)
 
-    def __array__(self) -> np.array:
+    def __array__(self) -> np.ndarray:
         return self._array
 
-    def numpy(self, dtype=np.uint8) -> np.array:
+    def numpy(self, dtype=np.uint8) -> np.ndarray:
         return self._array.astype(dtype)
 
     @property

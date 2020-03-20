@@ -1,6 +1,8 @@
 from numbers import Number
 from collections import namedtuple
 
+import numpy as np
+
 __all__ = ["Rectangle", "Point"]
 
 
@@ -17,6 +19,10 @@ class Point(namedtuple("Point", ["y", "x"])):
         yloc = int(y)
         xloc = int(x)
         return super().__new__(cls, y=yloc, x=xloc)
+
+    @classmethod
+    def from_array(cls, array: np.ndarray):
+        pass
 
     def inside(self, image) -> bool:
         """Check Point locate inside given image or not"""
