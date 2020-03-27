@@ -152,17 +152,17 @@ class TestImageObject:
         file = str(SAMPLE_IMAGES[0])
         img = Image.from_file(file)
 
-        img.resize((224, 224))
-        assert img.shape == img.numpy().shape == (224, 224, 3)
+        img.resize((100, 400))
+        assert img.shape == img.numpy().shape == (100, 400, 3)
 
-        img.resize((448, 448), interpolation="INTER_LINEAR")
-        assert img.shape == img.numpy().shape == (448, 448, 3)
+        img.resize((100, 400), interpolation="INTER_LINEAR")
+        assert img.shape == img.numpy().shape == (100, 400, 3)
 
-        img.resize((224, 224), interpolation="INTER_CUBIC")
-        assert img.shape == img.numpy().shape == (224, 224, 3)
+        img.resize((400, 200), interpolation="INTER_CUBIC")
+        assert img.shape == img.numpy().shape == (400, 200, 3)
 
-        img.resize((448, 448), interpolation="INTER_LANCZOS4")
-        assert img.shape == img.numpy().shape == (448, 448, 3)
+        img.resize((400, 200), interpolation="INTER_LANCZOS4")
+        assert img.shape == img.numpy().shape == (400, 200, 3)
 
     def test_resize_invalid_shape(self):
         """.resize() should raise ValueError when shape is invalid"""
@@ -248,4 +248,4 @@ class TestMathOperation:
 
 
 if __name__ == "__main__":
-    pytest.main(["-s", "-v", "-k TestMathOperation", __file__])
+    pytest.main(["-s", "-v", __file__])

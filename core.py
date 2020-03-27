@@ -92,7 +92,7 @@ class Image:
                 the target numpy array, dtype must be uint8.
                 If to_color is False, the dimension must be (h, w, 3)
             name: the image name, default using array id.
-            to_color: whether to convert image from gray to RGB
+            to_color: whether to convert image from gray to BGR
         """
         input_array_info = "array of shape {} and dtype {}"
         input_array_info = input_array_info.format(array.shape, array.dtype)
@@ -183,7 +183,7 @@ class Image:
             raise ValueError(msg.format(shape))
 
         self._array = cv2.resize(
-            self._array, shape,
+            self._array, shape[::-1],
             interpolation=getattr(cv2, interpolation)
         )
 
