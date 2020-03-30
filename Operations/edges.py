@@ -2,41 +2,43 @@ from typing import List
 
 import cv2
 import numpy as np
-from skimage.segmentation import active_contour
+from skimage.segmentation import active_contour, chan_vese
+from skimage.segmentation import morphological_chan_vese as morph_chan_vese
+from skimage.segmentation import morphological_geodesic_active_contour as morph_gac
 
 from IMGBOX.core import Image
 from IMGBOX.Operations.base import SingularOperation
 
 
-__all__ = ["ActiveContour", "Canny", "Laplacian"]
+__all__ = [
+    "Canny", "Laplacian",
+    "ActiveContour", "ChanVese",
+    "MorphChanVese", "MorphGAC"
+]
 
 
-class ActiveContour:
+class _FromSK:
+    """base class of operations simply used from skicit-image built-ins"""
 
-    def __init__(self, snakes: List[np.ndarray], **kwargs):
-        """Initialize active contour (snake) by specifying initial snakes
-
-        The **kwargs follows parameters of scikit-image active_contour
-        https://scikit-image.org/docs/dev/api/skimage.segmentation.html#skimage.segmentation.active_contour
-
-        Args:
-            snakes (List[np.array]): initial snake coordinates.
-            **kwargs: checkout out scikit-image active_contour
+    def __init__(self, **kwargs):
         """
-        if isinstance(snakes, np.ndarray):
-            snakes = [snakes]
-        if not snakes:
-            msg = "Empty snakes."
-            raise ValueError(msg)
-        if len(snakes) > 1:
-            msg = "Currently only support single snakes"
-            raise ValueError(msg)
-
-        self._snakes = [array.copy() for array in snakes]
+        The **kwargs follows parameters of scikit-image
+        """
         self._kwargs = kwargs
 
-    def on(self, img: np.ndarray) -> np.ndarray:
-        return active_contour(img, self._snakes[0], **self._kwargs)
+    @property
+    def op_func(self):
+        raise NotImplementedError()
+
+    def on(self, img: Image) -> np.ndarray:
+        gray = cv2.cvtColor(img._array, cv2.COLOR_BGR2GRAY)
+        return self.op_func(gray, **self._kwargs)
+
+
+MorphGAC = type("MorphGAC", (_FromSK,), {"op_func": staticmethod(morph_gac)})
+MorphChanVese = type("MorphChanVese", (_FromSK,), {"op_func": staticmethod(morph_chan_vese)})
+ChanVese = type("ChanVese", (_FromSK,), {"op_func": staticmethod(chan_vese)})
+ActiveContour = type("ActiveContour", (_FromSK,), {"op_func": staticmethod(active_contour)})
 
 
 class Canny(SingularOperation):
