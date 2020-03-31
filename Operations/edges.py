@@ -31,7 +31,7 @@ class _FromSK:
         raise NotImplementedError()
 
     def on(self, img: Image) -> np.ndarray:
-        gray = cv2.cvtColor(img._array, cv2.COLOR_BGR2GRAY)
+        gray = img.to_gray()
         return self.op_func(gray, **self._kwargs)
 
 
@@ -58,7 +58,6 @@ class Canny(SingularOperation):
             img.astype(np.uint8, copy=False),
             self._thres1, self._thres2
         )
-        result = cv2.cvtColor(result, cv2.COLOR_GRAY2BGR)
         return result
 
 
@@ -73,10 +72,8 @@ class Laplacian(SingularOperation):
         self._kern = kernel_size
 
     def _operate(self, img: np.ndarray) -> np.ndarray:
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         result = cv2.Laplacian(
             img.astype(np.uint8, copy=False),
             ddepth=cv2.CV_8U, ksize=self._kern
         )
-        result = cv2.cvtColor(result, cv2.COLOR_GRAY2BGR)
         return result

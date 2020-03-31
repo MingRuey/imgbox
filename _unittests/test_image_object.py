@@ -7,95 +7,107 @@ import numpy as np
 
 from IMGBOX.core import Image
 from IMGBOX._unittests.configs import INVALID_IMAGES, SAMPLE_IMAGES
-from IMGBOX._unittests.configs import UNDETECTED_IMAGES
+from IMGBOX._unittests.configs import UNDETECTED_IMAGES, IMAGE_BW
+
+
+def _is_ref_unequal(array1, array2):
+    """Return if altering one array would affect another"""
+    if not np.all(array1 == array2):
+        return True
+
+    array1[0, 0] = 100
+    flag1 = np.all(array1 == array2)
+
+    array2[1, 1] = 100
+    flag2 = np.all(array1 == array2)
+    return (not flag1) and (not flag2)
 
 
 class TestImageObject:
 
-    def test_can_not_init(self):
-        """Init Image object is prohibited"""
-        with pytest.raises(RuntimeError):
-            Image()
-
-    def test_from_file(self):
-        """Image object can and should be loaded from file"""
+    def test_from_file_color(self):
+        """Image object can and should be loaded from color image file"""
         for file in SAMPLE_IMAGES:
             img = Image.from_file(str(file))
+            assert img.name == file.stem
+            assert img.is_color
+
+    def test_from_file_blackwhite(self):
+        """Image object can and should be loaded from black white image"""
+        img = Image.from_file(IMAGE_BW)
+        assert img.name == IMAGE_BW.stem
+        assert not img.is_color
 
     def test_from_array(self):
         """Image object can created from uint8 numpy array"""
         array = np.random.randint(0, 255, size=(100, 500, 3), dtype=np.uint8)
-        img = Image.from_array(array)
+        img = Image(array)
+        assert img.name == "array_" + str(id(array))
+        assert img.is_color
+        assert _is_ref_unequal(img, array)
 
-        assert np.all(img.numpy() == array)
+        array = np.random.randint(0, 255, size=(100, 500), dtype=np.uint8)
+        img = Image(array)
+        assert img.name == "array_" + str(id(array))
+        assert not img.is_color
+        assert _is_ref_unequal(img, array)
 
     def test_from_invalid_array(self):
         """Image object should refuse invalid array"""
         wrong_dimension = np.random.randint(
-            0, 255, size=(100, 500), dtype=np.uint8
+            0, 255, size=(100, 500, 1), dtype=np.uint8
         )
         with pytest.raises(ValueError):
-            img = Image.from_array(wrong_dimension, to_color=False)
+            img = Image(wrong_dimension, to_color=False)
 
         wrong_dtype = np.random.randint(0, 255, size=(100, 500, 3))
-        wrong_dtype = wrong_dtype.astype(np.float32, copy=False)
+        wrong_dtype = wrong_dtype.astype(np.float32)
         with pytest.raises(ValueError):
-            img = Image.from_array(wrong_dtype)
+            img = Image(wrong_dtype)
 
-    def test_numpy_array_from_file(self):
-        """.numpy() should give np.ndarray in uint8(default)
-           and to np.ndarray give the same values but in float32"""
-        file = str(SAMPLE_IMAGES[0])
+    @pytest.mark.parametrize(
+        "img", [
+            Image(np.random.randint(0, 255, size=(100, 500, 3), dtype=np.uint8)),
+            Image(np.random.randint(0, 255, size=(100, 500), dtype=np.uint8))
+        ],
+        ids=["color", "bw"]
+    )
+    def test_change_type(self, img):
+        """.astype(dtype) should use copy of original array, and keep name"""
+        assert img.dtype == np.uint8
 
-        img = Image.from_file(file)
-        numpy_method = img.numpy()
-        to_numpy = np.array(img)
-        assert to_numpy.dtype == np.float32
-        assert numpy_method.dtype == np.uint8
-        assert np.all(numpy_method == to_numpy)
-
-        # check the reference of the numpy
-        img2 = img.numpy()
-        img2[0, ...] = 10
-        to_numpy2 = np.array(img)
-        to_numpy2[0, ...] = 100
-        assert not np.allclose(img, img2)
-        assert not np.allclose(to_numpy, img2)
-        assert not np.allclose(to_numpy, to_numpy2)
-        assert not np.allclose(img, to_numpy2)
-
-    def test_numpy_array_from_array(self):
-        """.numpy() should give np.ndarray and to np.ndarray give the same"""
-        array = np.random.randint(0, 255, size=(100, 500, 3), dtype=np.uint8)
-        img = Image.from_array(array)
-
-        numpy_method = img.numpy()
-        to_numpy = np.array(img)
-        assert np.all(numpy_method == to_numpy)
-        assert np.all(numpy_method == array)
+        change_type = img.astype(np.float32)
+        assert np.allclose(change_type, img)
+        assert change_type.name == img.name
+        assert _is_ref_unequal(change_type, img)
 
         # check the reference of the numpy
-        array[0, ...] = 1
-        img2 = img.numpy()
-        img2[0, ...] = 10
-        to_numpy2 = np.array(img)
-        to_numpy2[0, ...] = 100
-        assert not np.allclose(img, array)
-        assert not np.allclose(img, img2)
-        assert not np.allclose(to_numpy, img2)
-        assert not np.allclose(to_numpy, to_numpy2)
-        assert not np.allclose(img, to_numpy2)
+        unchange_type = img.astype(np.uint8)
+        assert np.allclose(unchange_type, img)
+        assert unchange_type.name == img.name
+        assert _is_ref_unequal(unchange_type, img)
 
-    def test_copy(self):
-        """Copy(image) should return a new image"""
-        array = np.random.randint(0, 255, size=(100, 500, 3), dtype=np.uint8)
-        img = Image.from_array(array)
+    def test_slice(self):
+        """Slice on image should use original array, and keep name"""
+        img = Image(np.random.randint(0, 255, size=(100, 500, 3), dtype=np.uint8))
 
-        new_img = Image.copy(img)
-        assert hash(new_img) != hash(img)
-        assert id(new_img) != id(img)
-        assert np.all(new_img.numpy() == img.numpy())
-        assert np.all(np.array(new_img) == np.array(img.numpy()))
+        sliced = img[...]
+        assert np.allclose(sliced, img)
+        assert sliced.name == img.name
+        assert not _is_ref_unequal(sliced, img)
+
+    @pytest.mark.parametrize(
+        "img", [
+            Image(np.random.randint(0, 255, size=(100, 500, 3), dtype=np.uint8)),
+            Image(np.random.randint(0, 255, size=(100, 500), dtype=np.uint8))
+        ],
+        ids=["color", "bw"]
+    )
+    def test_recreate(self, img):
+        """Recreate Image from given Image should use copy of original array"""
+        recreate = Image(img)
+        assert np.allclose(recreate, img)
+        assert _is_ref_unequal(recreate, img)
 
     def test_properties(self):
         """Image name, h, w and shape properties should match that of .numpy()"""
@@ -103,11 +115,33 @@ class TestImageObject:
         img = Image.from_file(str(file))
         assert img.name == file.stem
 
-        array = img.numpy()
-        assert img.h == array.shape[0]
-        assert img.w == array.shape[1]
+        assert img.h == 260
+        assert img.w == 260
         assert len(img.shape) == 3
-        assert img.shape == array.shape
+        assert img.ndim == 3
+        assert img.c == 3
+
+    def test_color_conversion(self):
+        """Convert to same color space return original ref, otherwise return the converted"""
+        color = Image.from_file(SAMPLE_IMAGES[0])
+        assert color.is_color
+
+        color_to_color = color.to_color()
+        assert color_to_color.is_color
+        assert id(color_to_color) == id(color)
+
+        color_to_gray = color.to_gray()
+        assert not color_to_gray.is_color
+        assert id(color_to_gray) != id(color)
+
+        gray = Image.from_file(IMAGE_BW)
+        gray_to_color = gray.to_color()
+        assert gray_to_color.is_color
+        assert id(gray_to_color) != id(gray)
+
+        gray_to_gray = gray.to_gray()
+        assert not gray_to_gray.is_color
+        assert id(gray_to_gray) == id(gray)
 
     @pytest.mark.parametrize(
         "sample", [str(file) for file in INVALID_IMAGES]
@@ -117,20 +151,23 @@ class TestImageObject:
         with pytest.raises(ValueError):
             img = Image.from_file(sample)
 
-    def test_save_to_file(self, tmp_path: pathlib.Path):
-        file = str(SAMPLE_IMAGES[0])
+    @pytest.mark.parametrize(
+        "sample", [SAMPLE_IMAGES[0], IMAGE_BW], ids=["color", "bw"]
+    )
+    def test_save_to_file(self, tmp_path: pathlib.Path, sample):
+        file = str(sample)
         img = Image.from_file(file)
-        ori_arr = img.numpy()
 
         file_name = "test_save_file.png"
         file = tmp_path.joinpath(file_name)
         img.save(str(file))
 
         assert file.is_file()
-        assert np.allclose(cv2.imread(str(file)), ori_arr)
+        cv2_read = cv2.imread(str(file), flags=cv2.IMREAD_UNCHANGED)
+        assert np.allclose(cv2_read, img)
 
         # save to same file should return error
-        file2 = str(SAMPLE_IMAGES[1])
+        file2 = str(sample)
         img = Image.from_file(file2)
 
         with pytest.raises(ValueError):
@@ -147,22 +184,34 @@ class TestImageObject:
         with pytest.raises(ValueError):
             img = Image.from_file(sample)
 
-    def test_resize(self):
-        """Test image resize to target shape"""
+    def test_resize_color(self):
+        """Test color image resize, it should keep original name"""
         file = str(SAMPLE_IMAGES[0])
         img = Image.from_file(file)
+        assert img.is_color
 
-        img.resize((100, 400))
-        assert img.shape == img.numpy().shape == (100, 400, 3)
+        resize = img.resize((100, 400))
+        assert img.name == resize.name
+        assert resize.shape == (100, 400, 3)
 
-        img.resize((100, 400), interpolation="INTER_LINEAR")
-        assert img.shape == img.numpy().shape == (100, 400, 3)
+        resize = img.resize((100, 400), interpolation="INTER_LINEAR")
+        assert img.name == resize.name
+        assert resize.shape == (100, 400, 3)
 
-        img.resize((400, 200), interpolation="INTER_CUBIC")
-        assert img.shape == img.numpy().shape == (400, 200, 3)
+        resize = img.resize((400, 200), interpolation="INTER_CUBIC")
+        assert img.name == resize.name
+        assert resize.shape == (400, 200, 3)
 
-        img.resize((400, 200), interpolation="INTER_LANCZOS4")
-        assert img.shape == img.numpy().shape == (400, 200, 3)
+    def test_resize_bw(self):
+        """Test bw image resize, it should keep original name"""
+        file = str(IMAGE_BW)
+        img = Image.from_file(file)
+        assert not img.is_color
+        assert img.shape != (100, 400)
+
+        resize = img.resize((100, 400))
+        assert img.name == resize.name
+        assert resize.shape == (100, 400)
 
     def test_resize_invalid_shape(self):
         """.resize() should raise ValueError when shape is invalid"""
@@ -206,19 +255,18 @@ class TestMathOperation:
         array = np.arange(1, 251).reshape(50, 5).astype(np.uint8)
         constant = 10
 
-        image = Image.from_array(array)
+        image = Image(array)
         op = operator(image, constant)
         r_op = operator(constant, image)
 
-        # Image.numpy() is 3-channel, allow broadcasting comparison
-        result = operator(array, constant).astype(np.uint8)[..., None]
-        r_result = operator(constant, array).astype(np.uint8)[..., None]
-        assert np.all(op.numpy() == result)
-        assert np.all(r_op.numpy() == r_result)
+        result = operator(array, constant)
+        r_result = operator(constant, array)
+        assert np.all(op == result)
+        assert np.all(r_op == r_result)
 
         # commutative operator
         if operand in ["+", "*"]:
-            assert np.all(op.numpy() == r_op.numpy())
+            assert np.all(op == r_op)
 
     @pytest.mark.parametrize(
         "operand", [k for k in _Operands.keys()]
@@ -230,21 +278,21 @@ class TestMathOperation:
         array1 = np.arange(1, 251).reshape(10, 25).astype(np.uint8)
         array2 = np.arange(250, 0, -1).reshape(10, 25).astype(np.uint8)
 
-        image1 = Image.from_array(array1)
-        image2 = Image.from_array(array2)
+        image1 = Image(array1)
+        image2 = Image(array2)
 
         op = operator(image1, image2)
         r_op = operator(image2, image1)
 
-        result = operator(array1, array2).astype(np.uint8)[..., None]
-        r_result = operator(array2, array1).astype(np.uint8)[..., None]
+        result = operator(array1, array2)
+        r_result = operator(array2, array1)
 
-        assert np.all(op.numpy() == result)
-        assert np.all(r_op.numpy() == r_result)
+        assert np.all(op == result)
+        assert np.all(r_op == r_result)
 
         # commutative operator
         if operand in ["+", "*"]:
-            assert np.all(op.numpy() == r_op.numpy())
+            assert np.all(op == r_op)
 
 
 if __name__ == "__main__":

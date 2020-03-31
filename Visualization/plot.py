@@ -1,6 +1,7 @@
 from typing import Tuple
 
 import cv2
+import numpy as np
 import tkinter as tk
 
 from IMGBOX.core import Image
@@ -65,9 +66,10 @@ def display(img: Image, title: str = None):
     )
 
     if dst_shape != img.shape:
-        img.resize(dst_shape)
+        img = img.resize(dst_shape)
 
     if title is None:
         title = img.name
-    cv2.imshow(title, img.numpy())
+
+    cv2.imshow(title, img.astype(np.uint8))
     cv2.waitKey()

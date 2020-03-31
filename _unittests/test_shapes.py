@@ -19,7 +19,7 @@ class TestPoint:
 
     def test_inside_image(self):
         """Point.inside should return right result"""
-        sample_img = Image.from_array(np.zeros((100, 200, 3), dtype=np.uint8))
+        sample_img = Image(np.zeros((100, 200, 3), dtype=np.uint8))
 
         # test 4 corners
         top_left = Point(y=0, x=0)

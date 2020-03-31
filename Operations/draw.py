@@ -15,7 +15,7 @@ def draw_rectangle(
         ):
     """Draw rectangle onto image by given color and line_width"""
     cv2.rectangle(
-        img._array,
+        img,
         (rectangle.xmin, rectangle.ymin),
         (rectangle.xmax, rectangle.ymax),
         color, line_width
@@ -44,4 +44,4 @@ def draw_points(img, points: List[Point], color: Tuple[int, int, int]):
         # stack points into indices
         indices = np.array([(pt.y, pt.x) for pt in points], dtype=np.int)
 
-    img._array[indices[:, 0], indices[:, 1], ...] = color
+    img[indices[:, 0], indices[:, 1], ...] = color
