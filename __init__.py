@@ -4,7 +4,6 @@ from IMGBOX.Operations.edges import *
 from IMGBOX.Operations.crop import *
 from IMGBOX.Operations.draw import *
 from IMGBOX.Operations.difference import *
-from IMGBOX.Operations.overlap import *
 from IMGBOX.Operations.correlation import *
 from IMGBOX.Visualization.plot import *
 
