@@ -121,8 +121,7 @@ class Image(np.ndarray):
     def to_gray(self):
         if self.is_color:
             return Image(
-                cv2.cvtColor(self, cv2.COLOR_BGR2GRAY),
-                name=self.name
+                cv2.cvtColor(self, cv2.COLOR_BGR2GRAY), name=self.name
             )
         else:
             return self
@@ -157,3 +156,44 @@ class Image(np.ndarray):
             interpolation=getattr(cv2, interpolation)
         )
         return Image(resize, name=self.name)
+
+    def concate(self, other, axis: int):
+        """Concatenate image with another image
+
+        Args:
+            other (Image):
+                the image to concatenate with
+            axis (int):
+                axis to concatenate,
+                0 for y axis (height axis),
+                1 for x axis (width axis).
+
+        Returns:
+            an Image obejct whose content is concatenation of two images.
+        """
+        if self.c != other.c:
+            msg = "Try concatenate images with channel {} and {}."
+            raise ValueError(msg.format(self.c, other.c))
+        elif self.dtype != other.dtype:
+            msg = "Try concatenate image with dtype {} and {}."
+            raise ValueError(msg.format(self.dtype, other.dtype))
+
+        if axis in [0, 1]:
+            if axis == 0 and (self.w != other.w):
+                msg = "Images concate along y-axis(height) must have"
+                msg += "same width, got {} and {}"
+                raise ValueError(msg.format(self.w, other.w))
+            elif axis == 1 and (self.h != other.h):
+                msg = "Images concate along x-axis(width) must have"
+                msg += "same height, got {} and {}"
+                raise ValueError(msg.format(self.h, other.h))
+        else:
+            msg = "Unrecognized axis option: {}, must be 0 or 1"
+            raise ValueError(msg.format(axis))
+
+        name = "Concate-{}-by-{}"
+        result = Image(
+            np.concatenate((self, other), axis=axis),
+            name=name.format(self.name, other.name)
+        )
+        return result

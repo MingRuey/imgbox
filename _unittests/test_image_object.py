@@ -235,6 +235,35 @@ class TestImageObject:
         with pytest.raises(ValueError):
             img.resize((224, 224), interpolation="NOT_EXIST")
 
+    def test_concatenate_invalid_dtype(self):
+        """concate works only with Image with same dtype"""
+        img1 = Image(np.ones((200, 100, 3), dtype=np.uint8), dtype=np.float32)
+        img2 = Image(np.ones((200, 100, 3), dtype=np.uint8), dtype=np.uint8)
+
+        with pytest.raises(ValueError):
+            concate = img1.concate(img2, axis=0)
+
+    def test_concatenate_invalid_shape(self):
+        """concate works only with Image of same height/width for x/y"""
+        same_w1 = Image(np.ones((10, 14, 3), dtype=np.uint8))
+        same_w2 = Image(np.ones((20, 14, 3), dtype=np.uint8))
+        same_h1 = Image(np.ones((20, 15, 3), dtype=np.uint8))
+        same_h2 = Image(np.ones((20, 30, 3), dtype=np.uint8))
+
+        with pytest.raises(ValueError):
+            concate = same_w1.concate(same_w2, axis=1)
+
+        with pytest.raises(ValueError):
+            concate = same_h1.concate(same_h2, axis=0)
+
+        concate = same_w1.concate(same_w2, axis=0)
+        assert isinstance(concate, Image)
+        assert concate.shape == (30, 14, 3)
+
+        concate = same_h1.concate(same_h2, axis=1)
+        assert isinstance(concate, Image)
+        assert concate.shape == (20, 45, 3)
+
 
 _Operands = {
     "+": operator.add,
